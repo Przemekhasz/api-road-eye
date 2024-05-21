@@ -4,7 +4,7 @@ class UserRepository
   end
 
   def find_by_id(id)
-    @relation.find(id)
+    @relation.includes(:profile).find(id)
   end
 
   def find_by_email(email)
@@ -12,7 +12,7 @@ class UserRepository
   end
 
   def all
-    @relation
+    @relation.includes(:profile)
   end
 
   def create(params)
