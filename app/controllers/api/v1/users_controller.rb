@@ -8,11 +8,11 @@ module Api
         user_service = UserService.new
         @users = user_service.get_all_users
 
-        render json: @users
+        render json: @users, include: :profile
       end
 
       def show
-        render json: @user
+        render json: @user, include: :profile
       end
 
       def create
@@ -20,7 +20,7 @@ module Api
         @user = user_service.create_user(user_params)
 
         if @user.persisted?
-          render json: @user, status: :created, location: api_v1_user_url(@user)
+          render json: @user, include: :profile, status: :created, location: api_v1_user_url(@user)
         else
           render json: @user.errors, status: :unprocessable_entity
         end
@@ -51,7 +51,7 @@ module Api
       end
 
       def user_params
-        params.require(:user).permit(:email, :password, :password_confirmation, roles: [])
+        params.require(:user).permit(:email, :password, :password_confirmation, roles: [], profile_attributes: [:first_name, :last_name, :voivodeship, :country, :city])
       end
     end
   end
