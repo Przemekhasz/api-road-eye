@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_05_21_194436) do
+ActiveRecord::Schema[7.1].define(version: 2024_05_21_195817) do
   create_table "profiles", force: :cascade do |t|
     t.string "first_name"
     t.string "last_name"
@@ -23,6 +23,18 @@ ActiveRecord::Schema[7.1].define(version: 2024_05_21_194436) do
     t.index ["user_id"], name: "index_profiles_on_user_id"
   end
 
+  create_table "recordings", force: :cascade do |t|
+    t.integer "user_id", null: false
+    t.string "title"
+    t.text "description"
+    t.string "file_path"
+    t.string "file_format"
+    t.integer "duration"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id"], name: "index_recordings_on_user_id"
+  end
+
   create_table "users", force: :cascade do |t|
     t.string "email"
     t.string "password_digest"
@@ -33,4 +45,5 @@ ActiveRecord::Schema[7.1].define(version: 2024_05_21_194436) do
   end
 
   add_foreign_key "profiles", "users"
+  add_foreign_key "recordings", "users"
 end
