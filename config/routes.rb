@@ -19,4 +19,12 @@ Rails.application.routes.draw do
       post 'login', to: 'sessions#create'
     end
   end
+
+  direct :rails_blob do |blob, options|
+    route_for(:rails_service_blob, blob.signed_id, blob.filename, options)
+  end
+
+  direct :rails_blob_representation do |representation, options|
+    route_for(:rails_service_blob_representation, representation.blob.signed_id, representation.variation_key, representation.blob.filename, options)
+  end
 end

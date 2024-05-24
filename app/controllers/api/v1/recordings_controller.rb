@@ -6,35 +6,39 @@ module Api
 
       def index
         @recordings = Recording.all
-        render json: @recordings
+        render json: @recordings.map { |recording| recording_attributes(recording) }
       end
 
       def show
-        render json: @recording
+        render json: recording_attributes(@recording)
       end
 
       def stream
-        file_path = @recording.file_path.path
-        if File.exist?(file_path)
-          send_file file_path, type: 'video/mp4', disposition: 'inline'
+        if @recording.files.attached?
+          # Streaming the first attached file, adapt as necessary
+          file = @recording.files.first
+          redirect_to rails_blob_path(file, disposition: "inline")
         else
           render json: { error: 'File not found' }, status: :not_found
         end
       end
 
       def create
+        Rails.logger.debug("Params: #{params.inspect}")
         @recording = @current_user.recordings.build(recording_params)
 
         if @recording.save
-          render json: @recording, status: :created, location: api_v1_recording_url(@recording)
+          Rails.logger.debug("Recording created with ID: #{@recording.id}")
+          render json: recording_attributes(@recording), status: :created, location: api_v1_recording_url(@recording)
         else
+          Rails.logger.error("Failed to create recording: #{@recording.errors.full_messages}")
           render json: @recording.errors, status: :unprocessable_entity
         end
       end
 
       def update
         if @recording.update(recording_params)
-          render json: @recording
+          render json: recording_attributes(@recording)
         else
           render json: @recording.errors, status: :unprocessable_entity
         end
@@ -42,6 +46,7 @@ module Api
 
       def destroy
         @recording.destroy
+        head :no_content
       end
 
       private
@@ -53,7 +58,18 @@ module Api
       end
 
       def recording_params
-        params.require(:recording).permit(:title, :description, :file_path)
+        params.require(:recording).permit(:title, :description, files: [])
+      end
+
+      def recording_attributes(recording)
+        {
+          id: recording.id,
+          title: recording.title,
+          description: recording.description,
+          files: recording.files.map { |file| url_for(file) },
+          created_at: recording.created_at,
+          updated_at: recording.updated_at
+        }
       end
     end
   end

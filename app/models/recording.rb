@@ -1,10 +1,9 @@
 class Recording < ApplicationRecord
   belongs_to :user
-
-  mount_uploader :file_path, RecordingUploader
+  has_many_attached :files
 
   validates :title, presence: true
-  validates :file_path, presence: true
+  validates :files, presence: true
   validates :file_format, presence: true
   validates :duration, numericality: { greater_than_or_equal_to: 0 }
 
@@ -15,16 +14,15 @@ class Recording < ApplicationRecord
 
   def set_default_values
     self.file_format ||= 'mp4'
-    self.duration ||= 000
+    self.duration ||= 0
   end
 
   def set_video_metadata
-    if file_path.present? && File.exist?(file_path.path)
-      movie = FFMPEG::Movie.new(file_path.path)
-      extension = File.extname(file_path.path).delete('.').downcase
-      self.update_columns(file_format: extension, duration: movie.duration || 000)
-    else
-      Rails.logger.error("Plik nie istnieje lub nie został przekazany: #{file_path.inspect}")
+    files.each do |file|
+        temp_file_path = ActiveStorage::Blob.service.send(:path_for, file.blob.key)
+        movie = FFMPEG::Movie.new(temp_file_path)
+        extension = File.extname(file.filename.to_s).delete('.').downcase
+        self.update_columns(file_format: extension, duration: movie.duration || 0)
     end
   end
 end

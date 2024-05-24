@@ -1,11 +1,7 @@
-class RecordingUploader < CarrierWave::Uploader::Base
-  storage :file
+class RecordingUploader < Shrine
+  plugin :validation_helpers
 
-  def store_dir
-    "uploads/#{model.class.to_s.underscore}/#{mounted_as}"
-  end
-
-  def extension_allowlist
-    %w(mp4 avi mkv mov)
+  Attacher.validate do
+    validate_extension_inclusion %w[mp4 avi mkv mov]
   end
 end
