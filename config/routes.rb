@@ -10,13 +10,15 @@ Rails.application.routes.draw do
 
   namespace :api do
     namespace :v1 do
-      resources :users, only: [:index, :show, :create, :update, :destroy]
       resources :recordings do
         member do
-          get 'stream'
+          get :stream
+        end
+        collection do
+          get :user_recordings
         end
       end
-      post 'login', to: 'sessions#create'
+      resources :users
     end
   end
 
