@@ -1,4 +1,5 @@
 class ApplicationController < ActionController::API
+  include Rails.application.routes.url_helpers
   def authorize_request
     header = request.headers['Authorization']
     header = header.split(' ').last if header
