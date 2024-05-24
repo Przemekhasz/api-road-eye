@@ -3,6 +3,7 @@ module Api
     class RecordingsController < ApplicationController
       before_action :authorize_request
       before_action :set_recording, only: %i[show update destroy stream]
+      before_action :set_user_recordings, only: %i[user_recordings]
 
       def index
         @recordings = Recording.all
@@ -13,9 +14,12 @@ module Api
         render json: recording_attributes(@recording)
       end
 
+      def user_recordings
+        render json: @user_recordings.map { |recording| recording_attributes(recording) }
+      end
+
       def stream
         if @recording.files.attached?
-          # Streaming the first attached file, adapt as necessary
           file = @recording.files.first
           redirect_to rails_blob_path(file, disposition: "inline")
         else
@@ -24,14 +28,11 @@ module Api
       end
 
       def create
-        Rails.logger.debug("Params: #{params.inspect}")
         @recording = @current_user.recordings.build(recording_params)
 
         if @recording.save
-          Rails.logger.debug("Recording created with ID: #{@recording.id}")
           render json: recording_attributes(@recording), status: :created, location: api_v1_recording_url(@recording)
         else
-          Rails.logger.error("Failed to create recording: #{@recording.errors.full_messages}")
           render json: @recording.errors, status: :unprocessable_entity
         end
       end
@@ -52,9 +53,13 @@ module Api
       private
 
       def set_recording
-        @recording = Recording.find(params[:id])
+        @recording = @current_user.recordings.find(params[:id])
       rescue ActiveRecord::RecordNotFound
         render json: { error: 'Recording not found' }, status: :not_found
+      end
+
+      def set_user_recordings
+        @user_recordings = @current_user.recordings
       end
 
       def recording_params
