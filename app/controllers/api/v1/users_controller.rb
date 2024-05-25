@@ -41,6 +41,10 @@ module Api
         user_service.delete_user(@user)
       end
 
+      def current
+        render json: @current_user, include: :profile
+      end
+
       private
 
       def set_user

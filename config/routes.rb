@@ -18,7 +18,12 @@ Rails.application.routes.draw do
           get :user_recordings
         end
       end
-      resources :users
+      resources :users do
+        collection do
+          get 'current', to: 'users#current'
+        end
+      end
+      post 'login', to: 'sessions#create'
     end
   end
 
